@@ -1,7 +1,16 @@
 #include "color.hxx" // color
 #include "ray.hxx"   // point3
+#include "vec3.hxx"
 
 #include <iostream> // std::cout, std::clog, std::flush
+
+auto ray_color(ray const& r) -> color
+{
+    auto const unit_direction = unit_vector(r.direction());
+    auto a = 0.5 * (unit_direction.y() + 1.0);
+
+    return (1 - a) * color(1.0, 1.0, 1.0) + a * color(0.5, 0.7, 1.0);
+}
 
 auto main() -> int
 {
@@ -40,8 +49,11 @@ auto main() -> int
 
         for (int i = 0; i < image_width; ++i)
         {
-            auto const pixel_color =
-                color{static_cast<double>(i) / (image_width - 1), static_cast<double>(j) / (image_height - 1), 0};
+            auto pixel_center = pixel00_loc + (i * pixel_delta_u) + (j * pixel_delta_v);
+            auto ray_direction = pixel_center - camera_center;
+            ray r(camera_center, ray_direction);
+
+            color pixel_color = ray_color(r);
             write_color(std::cout, pixel_color);
         }
     }
