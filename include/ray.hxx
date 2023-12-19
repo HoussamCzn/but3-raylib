@@ -1,6 +1,6 @@
 #pragma once
 
-#include "vec3.hxx"
+#include "vec3.hxx" // vec3
 
 using point3 = vec3;
 
