@@ -8,6 +8,6 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 
 file(GLOB SOURCES "source/*.cxx")
 
-add_executable(rayons ${SOURCES})
+add_executable(main ${SOURCES})
 
-target_include_directories(rayons PUBLIC include)
+target_include_directories(main PUBLIC include)
