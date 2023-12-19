@@ -1,10 +1,10 @@
 #include "color.hxx" // color
 #include "ray.hxx"   // point3
-#include "vec3.hxx"
+#include "vec3.hxx"  // vec3, dot, unit_vector
 
 #include <iostream> // std::cout, std::clog, std::flush
 
-auto hit_sphere(point3 const& center, double radius, ray const& r) -> double
+constexpr auto hit_sphere(point3 const& center, double radius, ray const& r) -> double
 {
     vec3 const oc = r.origin() - center;
     auto const a = dot(r.direction(), r.direction());
@@ -16,7 +16,7 @@ auto hit_sphere(point3 const& center, double radius, ray const& r) -> double
     return (-b - sqrt(discriminant)) / (2.0 * a);
 }
 
-auto ray_color(ray const& r) -> color
+constexpr auto ray_color(ray const& r) -> color
 {
     auto const t = hit_sphere(point3(0, 0, -1), 0.5, r);
 
