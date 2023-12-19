@@ -1,5 +1,4 @@
 #include "color.hxx" // color
-#include "vec3.hxx"  // vec3
 
 #include <iostream> // std::cout, std::clog, std::flush
 
