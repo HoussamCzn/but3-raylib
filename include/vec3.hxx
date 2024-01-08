@@ -74,8 +74,6 @@ public:
 
     friend inline auto operator/(vec3 v, double t) -> vec3 { return (1 / t) * v; }
 
-private:
-
     std::array<double, 3> m_e;
 };
 
@@ -87,7 +85,10 @@ private:
  * @param v The second vector.
  * @return The dot product of the two vectors.
  */
-inline auto dot(vec3 const& u, vec3 const& v) -> double { return u.x() * v.x() + u.y() * v.y() + u.z() * v.z(); }
+inline auto dot(vec3 const& u, vec3 const& v) -> double
+{
+    return u.m_e[0] * v.m_e[0] + u.m_e[1] * v.m_e[1] + u.m_e[2] * v.m_e[2];
+}
 
 /**
  * @brief Computes the cross product of two vectors.
@@ -97,7 +98,8 @@ inline auto dot(vec3 const& u, vec3 const& v) -> double { return u.x() * v.x() +
  */
 inline auto cross(vec3 const& u, vec3 const& v) -> vec3
 {
-    return {u.x() * v.y() - u.y() * v.x(), u.y() * v.z() - u.z() * v.y(), u.z() * v.x() - u.x() * v.z()};
+    return {u.m_e[1] * v.m_e[2] - u.m_e[2] * v.m_e[1], u.m_e[2] * v.m_e[0] - u.m_e[0] * v.m_e[2],
+            u.m_e[0] * v.m_e[1] - u.m_e[1] * v.m_e[0]};
 }
 
 /**
