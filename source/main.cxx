@@ -4,6 +4,14 @@
 
 #include <iostream> // std::cout, std::clog, std::flush
 
+/**
+ * @brief Determines if a ray hits a sphere.
+ * The current implementation only works for spheres centered at the origin.
+ * @param center The center of the sphere.
+ * @param radius The radius of the sphere.
+ * @param r      The ray.
+ * @return The distance along the ray at which it hits the sphere, or -1.0 if it does not hit.
+ */
 constexpr auto hit_sphere(point3 const& center, double radius, ray const& r) -> double
 {
     vec3 const oc = r.origin() - center;
@@ -16,6 +24,11 @@ constexpr auto hit_sphere(point3 const& center, double radius, ray const& r) -> 
     return (-b - sqrt(discriminant)) / (2.0 * a);
 }
 
+/**
+ * @brief Determines the color of a ray.
+ * @param r The ray.
+ * @return The color of the ray.
+ */
 constexpr auto ray_color(ray const& r) -> color
 {
     auto const t = hit_sphere(point3(0, 0, -1), 0.5, r);

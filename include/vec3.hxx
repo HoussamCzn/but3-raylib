@@ -81,11 +81,28 @@ private:
 
 // Vector Utility Functions
 
+/**
+ * @brief Computes the dot product of two vectors.
+ * @param u The first vector.
+ * @param v The second vector.
+ * @return The dot product of the two vectors.
+ */
 constexpr auto dot(vec3 const& u, vec3 const& v) -> double { return u.x() * v.x() + u.y() * v.y() + u.z() * v.z(); }
 
+/**
+ * @brief Computes the cross product of two vectors.
+ * @param u The first vector.
+ * @param v The second vector.
+ * @return The cross product of the two vectors.
+ */
 constexpr auto cross(vec3 const& u, vec3 const& v) -> vec3
 {
     return {u.x() * v.y() - u.y() * v.x(), u.y() * v.z() - u.z() * v.y(), u.z() * v.x() - u.x() * v.z()};
 }
 
+/**
+ * @brief Returns a unit vector with the same direction as the given vector.
+ * @param v The vector to normalize.
+ * @return A unit vector with the same direction as the given vector.
+ */
 constexpr auto unit_vector(vec3 v) -> vec3 { return v / v.length(); }
