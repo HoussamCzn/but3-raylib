@@ -7,7 +7,7 @@ class hit_record
 {
 public:
 
-    auto set_face_normal(ray const& r, vec3 const& outward_normal) -> void
+    constexpr auto set_face_normal(ray const& r, vec3 const& outward_normal) -> void
     {
         front_face = dot(r.direction(), outward_normal) < 0.0;
         normal = front_face ? outward_normal : -outward_normal;

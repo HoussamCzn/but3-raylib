@@ -44,7 +44,7 @@ public:
 
 private:
 
-    auto initialize() -> void
+    constexpr auto initialize() -> void
     {
         m_image_height = static_cast<int>(image_width / aspect_ratio);
         m_image_height = (m_image_height < 1) ? 1 : m_image_height;
