@@ -1,5 +1,6 @@
 #pragma once
 
+#include "interval.hxx"
 #include "ray.hxx" // ray
 
 class hit_record
@@ -24,5 +25,5 @@ public:
 
     virtual ~hittable() = default;
 
-    virtual auto hit(ray const& r, double t_min, double t_max, hit_record& rec) const -> bool = 0;
+    virtual auto hit(ray const& r, interval ray_interval, hit_record& rec) const -> bool = 0;
 };

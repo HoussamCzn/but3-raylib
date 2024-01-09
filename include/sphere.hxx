@@ -9,9 +9,9 @@ public:
 
     sphere(point3 const& center, double radius) : m_center(center), m_radius(radius) {}
 
-    auto hit(ray const& r, double t_min, double t_max, hit_record& rec) const -> bool override
+    auto hit(ray const& r, interval ray_interval, hit_record& rec) const -> bool override
     {
-        vec3 const oc = r.origin() - m_center;
+        auto const oc = r.origin() - m_center;
         auto const a = r.direction().length_squared();
         auto const half_b = dot(oc, r.direction());
         auto const c = oc.length_squared() - m_radius * m_radius;
@@ -19,30 +19,22 @@ public:
 
         if (discriminant > 0.0)
         {
-            auto const root = sqrt(discriminant);
-            auto temp = (-half_b - root) / a;
+            auto const sqrtd = std::sqrt(discriminant);
+            auto root = (-half_b - sqrtd) / a;
 
-            if (temp < t_max && temp > t_min)
+            if (!ray_interval.contains(root))
             {
-                rec.t = temp;
-                rec.p = r.at(rec.t);
-                vec3 const outward_normal = (rec.p - m_center) / m_radius;
-                rec.set_face_normal(r, outward_normal);
+                root = (-half_b + root) / a;
 
-                return true;
+                if (!ray_interval.contains(root)) { return false; }
             }
 
-            temp = (-half_b + root) / a;
+            rec.t = root;
+            rec.p = r.at(rec.t);
+            auto const outward_normal = (rec.p - m_center) / m_radius;
+            rec.set_face_normal(r, outward_normal);
 
-            if (temp < t_max && temp > t_min)
-            {
-                rec.t = temp;
-                rec.p = r.at(rec.t);
-                vec3 const outward_normal = (rec.p - m_center) / m_radius;
-                rec.set_face_normal(r, outward_normal);
-
-                return true;
-            }
+            return true;
         }
 
         return false;
