@@ -1,5 +1,7 @@
 #pragma once
 
+#include "helpers.hxx" // random_double
+
 #include <array>    // std::array
 #include <cmath>    // sqrt
 #include <iostream> // std::ostream
@@ -8,27 +10,34 @@ class vec3
 {
 public:
 
-    inline vec3() : e{0, 0, 0} {}
+    constexpr vec3() = default;
 
-    inline vec3(double e0, double e1, double e2) : e{e0, e1, e2} {}
+    constexpr vec3(double e0, double e1, double e2) : e{e0, e1, e2} {}
 
-    inline auto x() const -> double { return e[0]; }
+    constexpr auto x() const -> double { return e[0]; }
 
-    inline auto y() const -> double { return e[1]; }
+    constexpr auto y() const -> double { return e[1]; }
 
-    inline auto z() const -> double { return e[2]; }
+    constexpr auto z() const -> double { return e[2]; }
 
-    inline auto length() const -> double { return std::sqrt(length_squared()); }
+    constexpr auto length_squared() const -> double { return e[0] * e[0] + e[1] * e[1] + e[2] * e[2]; }
 
-    inline auto length_squared() const -> double { return e[0] * e[0] + e[1] * e[1] + e[2] * e[2]; }
+    auto length() const -> double { return std::sqrt(length_squared()); }
 
-    inline auto operator-() const -> vec3 { return {-e[0], -e[1], -e[2]}; }
+    static auto random() -> vec3 { return {random_double(), random_double(), random_double()}; }
 
-    inline auto operator[](int i) const -> double { return e[i]; }
+    static auto random(double min, double max) -> vec3
+    {
+        return {random_double(min, max), random_double(min, max), random_double(min, max)};
+    }
 
-    inline auto operator[](int i) -> double& { return e[i]; }
+    constexpr auto operator-() const -> vec3 { return {-e[0], -e[1], -e[2]}; }
 
-    inline auto operator+=(vec3 const& v) -> vec3&
+    constexpr auto operator[](int i) const -> double { return e[i]; }
+
+    constexpr auto operator[](int i) -> double& { return e[i]; }
+
+    constexpr auto operator+=(vec3 const& v) -> vec3&
     {
         e[0] += v.e[0];
         e[1] += v.e[1];
@@ -37,7 +46,7 @@ public:
         return *this;
     }
 
-    inline auto operator*=(double t) -> vec3&
+    constexpr auto operator*=(double t) -> vec3&
     {
         e[0] *= t;
         e[1] *= t;
@@ -46,38 +55,36 @@ public:
         return *this;
     }
 
-    inline auto operator/=(double t) -> vec3& { return *this *= 1 / t; }
+    constexpr auto operator/=(double t) -> vec3& { return *this *= 1 / t; }
+
+    friend constexpr auto operator+(vec3 const& u, vec3 const& v) -> vec3
+    {
+        return {u.e[0] + v.e[0], u.e[1] + v.e[1], u.e[2] + v.e[2]};
+    }
+
+    friend constexpr auto operator-(vec3 const& u, vec3 const& v) -> vec3
+    {
+        return {u.e[0] - v.e[0], u.e[1] - v.e[1], u.e[2] - v.e[2]};
+    }
+
+    friend constexpr auto operator*(vec3 const& u, vec3 const& v) -> vec3
+    {
+        return {u.e[0] * v.e[0], u.e[1] * v.e[1], u.e[2] * v.e[2]};
+    }
+
+    friend constexpr auto operator*(double t, vec3 const& v) -> vec3 { return {t * v.e[0], t * v.e[1], t * v.e[2]}; }
+
+    friend constexpr auto operator*(vec3 const& v, double t) -> vec3 { return t * v; }
+
+    friend constexpr auto operator/(vec3 v, double t) -> vec3 { return (1 / t) * v; }
 
     friend inline auto operator<<(std::ostream& out, vec3 const& v) -> std::ostream&
     {
         return out << v.e[0] << ' ' << v.e[1] << ' ' << v.e[2];
     }
 
-    friend inline auto operator+(vec3 const& u, vec3 const& v) -> vec3
-    {
-        return {u.e[0] + v.e[0], u.e[1] + v.e[1], u.e[2] + v.e[2]};
-    }
-
-    friend inline auto operator-(vec3 const& u, vec3 const& v) -> vec3
-    {
-        return {u.e[0] - v.e[0], u.e[1] - v.e[1], u.e[2] - v.e[2]};
-    }
-
-    friend inline auto operator*(vec3 const& u, vec3 const& v) -> vec3
-    {
-        return {u.e[0] * v.e[0], u.e[1] * v.e[1], u.e[2] * v.e[2]};
-    }
-
-    friend inline auto operator*(double t, vec3 const& v) -> vec3 { return {t * v.e[0], t * v.e[1], t * v.e[2]}; }
-
-    friend inline auto operator*(vec3 const& v, double t) -> vec3 { return t * v; }
-
-    friend inline auto operator/(vec3 v, double t) -> vec3 { return (1 / t) * v; }
-
-    std::array<double, 3> e;
+    std::array<double, 3> e{};
 };
-
-// Vector Utility Functions
 
 /**
  * @brief Computes the dot product of two vectors.
@@ -85,7 +92,7 @@ public:
  * @param v The second vector.
  * @return The dot product of the two vectors.
  */
-inline auto dot(vec3 const& u, vec3 const& v) -> double { return u.e[0] * v.e[0] + u.e[1] * v.e[1] + u.e[2] * v.e[2]; }
+constexpr auto dot(vec3 const& u, vec3 const& v) -> double { return u.e[0] * v.e[0] + u.e[1] * v.e[1] + u.e[2] * v.e[2]; }
 
 /**
  * @brief Computes the cross product of two vectors.
@@ -93,7 +100,7 @@ inline auto dot(vec3 const& u, vec3 const& v) -> double { return u.e[0] * v.e[0]
  * @param v The second vector.
  * @return The cross product of the two vectors.
  */
-inline auto cross(vec3 const& u, vec3 const& v) -> vec3
+constexpr auto cross(vec3 const& u, vec3 const& v) -> vec3
 {
     return {u.e[1] * v.e[2] - u.e[2] * v.e[1], u.e[2] * v.e[0] - u.e[0] * v.e[2], u.e[0] * v.e[1] - u.e[1] * v.e[0]};
 }
@@ -104,3 +111,41 @@ inline auto cross(vec3 const& u, vec3 const& v) -> vec3
  * @return A unit vector with the same direction as the given vector.
  */
 inline auto unit_vector(vec3 v) -> vec3 { return v / v.length(); }
+
+/**
+ * @brief Returns a random vector with components in the range [min,max).
+ * Repeatedly generates random samples until one matches the criteria.
+ * @param min The minimum value for each component.
+ * @param max The maximum value for each component.
+ * @return A random vector with components in the range [min,max).
+ */
+inline auto random_in_unit_sphere() -> vec3
+{
+    for (;;)
+    {
+        auto const p = vec3::random(-1, 1);
+
+        if (p.length_squared() < 1) { return p; }
+    }
+}
+
+/**
+ * @brief Returns a random unit vector.
+ * @return A random unit vector.
+ */
+inline auto random_unit_vector() -> vec3 { return unit_vector(random_in_unit_sphere()); }
+
+/**
+ * @brief Returns a random vector with components in the range [min,max).
+ * Uses a rejection method to generate random samples.
+ * @param min The minimum value for each component.
+ * @param max The maximum value for each component.
+ * @return A random vector with components in the range [min,max).
+ */
+inline auto random_on_hemisphere(vec3 const& normal) -> vec3
+{
+    auto const in_unit_sphere = random_in_unit_sphere();
+
+    if (dot(in_unit_sphere, normal) > 0.0) { return in_unit_sphere; }
+    return -in_unit_sphere;
+}
