@@ -95,7 +95,7 @@ private:
 
         hit_record rec;
 
-        if (world.hit(r, interval{0.0, infinity}, rec))
+        if (world.hit(r, interval{0.001, infinity}, rec))
         {
             auto const direction = random_on_hemisphere(rec.normal);
 
