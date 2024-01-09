@@ -8,9 +8,11 @@ class triangle : public hittable
 {
 public:
 
-    triangle(vec3 const& v0, vec3 const& v1, vec3 const& v2) : m_v0(v0), m_v1(v1), m_v2(v2) {}
+    triangle(vec3 const& v0, vec3 const& v1, vec3 const& v2, std::shared_ptr<material> material_ptr)
+        : m_v0(v0), m_v1(v1), m_v2(v2), m_material_ptr(std::move(material_ptr))
+    {}
 
-    auto hit(ray const& r, interval /*ray_interval*/, hit_record& /*rec*/) const -> bool override
+    auto hit(ray const& r, interval ray_interval, hit_record& rec) const -> bool override
     {
         auto const epsilon = 0.0000001;
 
@@ -34,7 +36,15 @@ public:
 
         auto const t = f * dot(edge2, q);
 
-        return t > epsilon;
+        if (!ray_interval.contains(t)) { return false; }
+
+        rec.t = t;
+        rec.p = r.at(rec.t);
+        auto const outward_normal = cross(edge1, edge2);
+        rec.set_face_normal(r, outward_normal);
+        rec.mat_ptr = m_material_ptr;
+
+        return true;
     }
 
 private:
@@ -42,4 +52,5 @@ private:
     vec3 m_v0;
     vec3 m_v1;
     vec3 m_v2;
+    std::shared_ptr<material> m_material_ptr;
 };
