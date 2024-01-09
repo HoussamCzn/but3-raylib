@@ -12,5 +12,6 @@ auto main() -> int
     view.aspect_ratio = 16.0 / 9.0;
     view.image_width = 400;
     view.samples_per_pixel = 100;
+    view.max_depth = 50;
     view.render(world);
 }

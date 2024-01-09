@@ -15,6 +15,7 @@ public:
     double aspect_ratio{1.0};
     uint32_t image_width{100};
     uint32_t samples_per_pixel{10};
+    uint32_t max_depth{10};
 
     auto render(hittable const& world) -> void
     {
@@ -33,7 +34,7 @@ public:
                 for (auto s = 0U; s < samples_per_pixel; ++s)
                 {
                     auto const r = get_ray(i, j);
-                    pixel_color += ray_color(r, world);
+                    pixel_color += ray_color(r, max_depth, world);
                 }
 
                 write_color(std::cout, pixel_color, samples_per_pixel);
@@ -88,15 +89,17 @@ private:
         return (x * m_horizontal) + (y * m_vertical);
     }
 
-    static auto ray_color(ray const& r, hittable const& world) -> color
+    static auto ray_color(ray const& r, uint32_t depth, hittable const& world) -> color
     {
+        if (depth <= 0) { return {}; }
+
         hit_record rec;
 
         if (world.hit(r, interval{0.0, infinity}, rec))
         {
             auto const direction = random_on_hemisphere(rec.normal);
-            
-            return 0.5 * ray_color({rec.p, direction}, world);
+
+            return 0.5 * ray_color({rec.p, direction}, depth - 1, world);
         }
 
         auto const unit_direction = unit_vector(r.direction());
