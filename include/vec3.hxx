@@ -24,6 +24,13 @@ public:
 
     auto length() const -> double { return std::sqrt(length_squared()); }
 
+    auto near_zero() const -> bool
+    {
+        constexpr auto s = 1e-8;
+
+        return (std::fabs(e[0]) < s) && (std::fabs(e[1]) < s) && (std::fabs(e[2]) < s);
+    }
+
     static auto random() -> vec3 { return {random_double(), random_double(), random_double()}; }
 
     static auto random(double min, double max) -> vec3
@@ -104,6 +111,14 @@ constexpr auto cross(vec3 const& u, vec3 const& v) -> vec3
 {
     return {u.e[1] * v.e[2] - u.e[2] * v.e[1], u.e[2] * v.e[0] - u.e[0] * v.e[2], u.e[0] * v.e[1] - u.e[1] * v.e[0]};
 }
+
+/**
+ * @brief Reflects the given vector around the given normal.
+ * @param v The vector to reflect.
+ * @param n The normal to reflect around.
+ * @return The reflected vector.
+ */
+constexpr auto reflect(vec3 const& v, vec3 const& n) -> vec3 { return v - 2 * dot(v, n) * n; }
 
 /**
  * @brief Returns a unit vector with the same direction as the given vector.
