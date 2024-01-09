@@ -56,3 +56,25 @@ private:
     color m_albedo;
     double m_fuzz;
 };
+
+class dielectric : public material
+{
+public:
+
+    explicit dielectric(double const index_of_refraction) : m_ir(index_of_refraction) {}
+
+    auto scatter(ray const& r_in, hit_record const& rec, color& attenuation, ray& scattered) const -> bool override
+    {
+        attenuation = color(1.0, 1.0, 1.0);
+        auto const refraction_ratio = rec.front_face ? (1.0 / m_ir) : m_ir;
+        auto const unit_direction = unit_vector(r_in.direction());
+        auto const refracted = refract(unit_direction, rec.normal, refraction_ratio);
+        scattered = ray(rec.p, refracted);
+
+        return true;
+    }
+
+private:
+
+    double m_ir;
+};
