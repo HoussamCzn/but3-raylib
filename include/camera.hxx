@@ -3,6 +3,7 @@
 #include "color.hxx"    // color
 #include "helpers.hxx"  // random_double
 #include "hittable.hxx" // hittable
+#include "material.hxx" // material
 #include "vec3.hxx"     // vec3
 
 #include <cstdint>  // uint32_t
@@ -97,9 +98,15 @@ private:
 
         if (world.hit(r, interval{0.001, infinity}, rec))
         {
-            auto const direction = rec.normal + random_unit_vector();
+            ray scattered;
+            color attenuation;
 
-            return 0.5 * ray_color({rec.p, direction}, depth - 1, world);
+            if (rec.mat_ptr->scatter(r, rec, attenuation, scattered))
+            {
+                return attenuation * ray_color(scattered, depth - 1, world);
+            }
+
+            return {};
         }
 
         auto const unit_direction = unit_vector(r.direction());
