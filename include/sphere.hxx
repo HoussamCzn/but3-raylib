@@ -21,7 +21,7 @@ public:
         {
             auto const root = sqrt(discriminant);
             auto temp = (-half_b - root) / a;
-            
+
             if (temp < t_max && temp > t_min)
             {
                 rec.t = temp;
