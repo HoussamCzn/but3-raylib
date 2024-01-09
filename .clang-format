@@ -10,9 +10,8 @@ EmptyLineBeforeAccessModifier: Always
 AlignAfterOpenBracket: Align
 AlignArrayOfStructures: Right
 AlignConsecutiveBitFields: Consecutive
-AlignConsecutiveMacros: false
-AlignConsecutiveAssignments: false
-AlignConsecutiveDeclarations: false
+AlignConsecutiveMacros: Consecutive
+AlignConsecutiveDeclarations: None
 AlignEscapedNewlines: Left
 AlignOperands: true
 AlignTrailingComments: true
@@ -35,7 +34,7 @@ AllowShortLoopsOnASingleLine: true
 BraceWrapping:
   AfterCaseLabel: false
   AfterClass: true
-  AfterControlStatement: true
+  AfterControlStatement: Always
   AfterEnum: true
   AfterFunction: true
   AfterNamespace: true
@@ -128,7 +127,7 @@ PenaltyExcessCharacter: 1000000
 PenaltyReturnTypeOnItsOwnLine: 200
 
 # Sorting and Spacing
-SortIncludes: true
+SortIncludes: CaseSensitive
 SortUsingDeclarations: true
 SpaceAfterCStyleCast: false
 SpaceAfterLogicalNot: false

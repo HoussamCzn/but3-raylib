@@ -12,10 +12,12 @@ Checks: "*,\
   -google-readability-todo,\
   -hicpp-avoid-c-arrays,\
   -hicpp-braces-around-statements,\
+  -hicpp-signed-bitwise,\
   -llvm-header-guard,\
   -llvm-include-order,\
   -llvmlibc-*,\
   -misc-include-cleaner,\
+  -misc-no-recursion,\
   -misc-non-private-member-variables-in-classes,\
   -modernize-avoid-c-arrays,\
   -modernize-use-nodiscard,\
