@@ -3,7 +3,7 @@
 #include "color.hxx"    // color
 #include "helpers.hxx"  // random_double
 #include "hittable.hxx" // hittable
-#include "vec3.hxx"
+#include "vec3.hxx"     // vec3
 
 #include <cstdint>  // uint32_t
 #include <iostream> // std::clog, std::cout, std::flush
@@ -97,7 +97,7 @@ private:
 
         if (world.hit(r, interval{0.001, infinity}, rec))
         {
-            auto const direction = random_on_hemisphere(rec.normal);
+            auto const direction = rec.normal + random_unit_vector();
 
             return 0.5 * ray_color({rec.p, direction}, depth - 1, world);
         }
