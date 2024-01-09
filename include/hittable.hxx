@@ -1,23 +1,10 @@
 #pragma once
 
-#include "interval.hxx"
-#include "ray.hxx" // ray
+#include "interval.hxx" // interval
+#include "ray.hxx"      // ray
+#include "record.hxx"   // hit_record
 
-class hit_record
-{
-public:
-
-    constexpr auto set_face_normal(ray const& r, vec3 const& outward_normal) -> void
-    {
-        front_face = dot(r.direction(), outward_normal) < 0.0;
-        normal = front_face ? outward_normal : -outward_normal;
-    }
-
-    point3 p;
-    vec3 normal;
-    double t{0.0};
-    bool front_face{false};
-};
+class material;
 
 class hittable
 {
