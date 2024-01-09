@@ -87,7 +87,8 @@ auto hit_triangle(vec3 const& v0, vec3 const& v1, vec3 const& v2, ray const& r) 
  */
 auto triangle_ray_color(ray const& r) -> color
 {
-    vec3 const v0{0, 0, -1};
+    // v0(0, 0, -1.3), v1(0.6, 0, -1), v2(0, 0.4, -1)
+    vec3 const v0{0, 0, -1.3};
     vec3 const v1{0.6, 0, -1};
     vec3 const v2{0, 0.4, -1};
     auto const t = hit_triangle(v0, v1, v2, r);
