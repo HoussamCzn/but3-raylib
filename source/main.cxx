@@ -1,7 +1,7 @@
 #include "color.hxx"         // color, write_color
+#include "constants.hxx"     // infinity, pi
 #include "hittable.hxx"      // hittable
 #include "hittable_list.hxx" // hittable_list
-#include "rtweekend.hxx"     // degrees_to_radians, infinity, pi
 #include "sphere.hxx"        // sphere
 
 #include <iostream> // std::cout, std::clog, std::flush
@@ -9,13 +9,13 @@
 auto ray_color(ray const& r, hittable const& world) -> color
 {
     hit_record rec;
+    
+    if (world.hit(r, interval(0, infinity), rec)) { return 0.5 * (rec.normal + color(1, 1, 1)); }
 
-    if (world.hit(r, 0, infinity, rec)) { return 0.5 * (rec.normal + color(1, 1, 1)); }
-
-    auto const unit_direction = unit_vector(r.direction());
-    auto const t = 0.5 * (unit_direction.y() + 1.0);
-
-    return (1.0 - t) * color(1.0, 1.0, 1.0) + t * color(0.5, 0.7, 1.0);
+    vec3 const unit_direction = unit_vector(r.direction());
+    auto const a = 0.5 * (unit_direction.y() + 1.0);
+    
+    return (1.0 - a) * color(1.0, 1.0, 1.0) + a * color(0.5, 0.7, 1.0);
 }
 
 auto main() -> int
