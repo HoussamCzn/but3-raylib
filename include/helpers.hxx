@@ -6,6 +6,8 @@
 
 constexpr auto degrees_to_radians(double degrees) -> double { return degrees * pi / 180.0; }
 
+inline auto linear_to_gamma(double linear_component) -> double { return std::sqrt(linear_component); }
+
 inline auto random_double() -> double
 {
     static std::random_device rd;
