@@ -8,40 +8,40 @@ class vec3
 {
 public:
 
-    inline vec3() : m_e{0, 0, 0} {}
+    inline vec3() : e{0, 0, 0} {}
 
-    inline vec3(double e0, double e1, double e2) : m_e{e0, e1, e2} {}
+    inline vec3(double e0, double e1, double e2) : e{e0, e1, e2} {}
 
-    inline auto x() const -> double { return m_e[0]; }
+    inline auto x() const -> double { return e[0]; }
 
-    inline auto y() const -> double { return m_e[1]; }
+    inline auto y() const -> double { return e[1]; }
 
-    inline auto z() const -> double { return m_e[2]; }
+    inline auto z() const -> double { return e[2]; }
 
     inline auto length() const -> double { return std::sqrt(length_squared()); }
 
-    inline auto length_squared() const -> double { return m_e[0] * m_e[0] + m_e[1] * m_e[1] + m_e[2] * m_e[2]; }
+    inline auto length_squared() const -> double { return e[0] * e[0] + e[1] * e[1] + e[2] * e[2]; }
 
-    inline auto operator-() const -> vec3 { return {-m_e[0], -m_e[1], -m_e[2]}; }
+    inline auto operator-() const -> vec3 { return {-e[0], -e[1], -e[2]}; }
 
-    inline auto operator[](int i) const -> double { return m_e[i]; }
+    inline auto operator[](int i) const -> double { return e[i]; }
 
-    inline auto operator[](int i) -> double& { return m_e[i]; }
+    inline auto operator[](int i) -> double& { return e[i]; }
 
     inline auto operator+=(vec3 const& v) -> vec3&
     {
-        m_e[0] += v.m_e[0];
-        m_e[1] += v.m_e[1];
-        m_e[2] += v.m_e[2];
+        e[0] += v.e[0];
+        e[1] += v.e[1];
+        e[2] += v.e[2];
 
         return *this;
     }
 
     inline auto operator*=(double t) -> vec3&
     {
-        m_e[0] *= t;
-        m_e[1] *= t;
-        m_e[2] *= t;
+        e[0] *= t;
+        e[1] *= t;
+        e[2] *= t;
 
         return *this;
     }
@@ -50,31 +50,31 @@ public:
 
     friend inline auto operator<<(std::ostream& out, vec3 const& v) -> std::ostream&
     {
-        return out << v.m_e[0] << ' ' << v.m_e[1] << ' ' << v.m_e[2];
+        return out << v.e[0] << ' ' << v.e[1] << ' ' << v.e[2];
     }
 
     friend inline auto operator+(vec3 const& u, vec3 const& v) -> vec3
     {
-        return {u.m_e[0] + v.m_e[0], u.m_e[1] + v.m_e[1], u.m_e[2] + v.m_e[2]};
+        return {u.e[0] + v.e[0], u.e[1] + v.e[1], u.e[2] + v.e[2]};
     }
 
     friend inline auto operator-(vec3 const& u, vec3 const& v) -> vec3
     {
-        return {u.m_e[0] - v.m_e[0], u.m_e[1] - v.m_e[1], u.m_e[2] - v.m_e[2]};
+        return {u.e[0] - v.e[0], u.e[1] - v.e[1], u.e[2] - v.e[2]};
     }
 
     friend inline auto operator*(vec3 const& u, vec3 const& v) -> vec3
     {
-        return {u.m_e[0] * v.m_e[0], u.m_e[1] * v.m_e[1], u.m_e[2] * v.m_e[2]};
+        return {u.e[0] * v.e[0], u.e[1] * v.e[1], u.e[2] * v.e[2]};
     }
 
-    friend inline auto operator*(double t, vec3 const& v) -> vec3 { return {t * v.m_e[0], t * v.m_e[1], t * v.m_e[2]}; }
+    friend inline auto operator*(double t, vec3 const& v) -> vec3 { return {t * v.e[0], t * v.e[1], t * v.e[2]}; }
 
     friend inline auto operator*(vec3 const& v, double t) -> vec3 { return t * v; }
 
     friend inline auto operator/(vec3 v, double t) -> vec3 { return (1 / t) * v; }
 
-    std::array<double, 3> m_e;
+    std::array<double, 3> e;
 };
 
 // Vector Utility Functions
@@ -85,10 +85,7 @@ public:
  * @param v The second vector.
  * @return The dot product of the two vectors.
  */
-inline auto dot(vec3 const& u, vec3 const& v) -> double
-{
-    return u.m_e[0] * v.m_e[0] + u.m_e[1] * v.m_e[1] + u.m_e[2] * v.m_e[2];
-}
+inline auto dot(vec3 const& u, vec3 const& v) -> double { return u.e[0] * v.e[0] + u.e[1] * v.e[1] + u.e[2] * v.e[2]; }
 
 /**
  * @brief Computes the cross product of two vectors.
@@ -98,8 +95,7 @@ inline auto dot(vec3 const& u, vec3 const& v) -> double
  */
 inline auto cross(vec3 const& u, vec3 const& v) -> vec3
 {
-    return {u.m_e[1] * v.m_e[2] - u.m_e[2] * v.m_e[1], u.m_e[2] * v.m_e[0] - u.m_e[0] * v.m_e[2],
-            u.m_e[0] * v.m_e[1] - u.m_e[1] * v.m_e[0]};
+    return {u.e[1] * v.e[2] - u.e[2] * v.e[1], u.e[2] * v.e[0] - u.e[0] * v.e[2], u.e[0] * v.e[1] - u.e[1] * v.e[0]};
 }
 
 /**
