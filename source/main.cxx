@@ -9,7 +9,8 @@ auto main() -> int
     world.add(std::make_shared<sphere>(point3(0, -100.5, -1), 100));
 
     camera view;
-    view.set_aspect_ratio(16.0 / 9.0);
-    view.set_image_width(400);
+    view.aspect_ratio = 16.0 / 9.0;
+    view.image_width = 400;
+    view.samples_per_pixel = 100;
     view.render(world);
 }
