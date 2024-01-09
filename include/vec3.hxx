@@ -2,6 +2,7 @@
 
 #include "helpers.hxx" // random_double
 
+#include <algorithm>
 #include <array>    // std::array
 #include <cmath>    // sqrt
 #include <iostream> // std::ostream
@@ -119,6 +120,22 @@ constexpr auto cross(vec3 const& u, vec3 const& v) -> vec3
  * @return The reflected vector.
  */
 constexpr auto reflect(vec3 const& v, vec3 const& n) -> vec3 { return v - 2 * dot(v, n) * n; }
+
+/**
+ * @brief Refracts the given vector around the given normal.
+ * @param uv The vector to refract.
+ * @param n The normal to refract around.
+ * @param etai_over_etat The ratio of the refractive indices.
+ * @return The refracted vector.
+ */
+inline auto refract(vec3 const& uv, vec3 const& n, double etai_over_etat) -> vec3
+{
+    auto const cos_theta = std::fmin(dot(-uv, n), 1.0);
+    auto const r_out_perp = etai_over_etat * (uv + cos_theta * n);
+    auto const r_out_parallel = -std::sqrt(std::fabs(1.0 - r_out_perp.length_squared())) * n;
+
+    return r_out_perp + r_out_parallel;
+}
 
 /**
  * @brief Returns a unit vector with the same direction as the given vector.
