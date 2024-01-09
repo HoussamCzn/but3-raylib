@@ -119,29 +119,18 @@ inline auto unit_vector(vec3 v) -> vec3 { return v / v.length(); }
  * @param max The maximum value for each component.
  * @return A random vector with components in the range [min,max).
  */
-inline auto random_in_unit_sphere() -> vec3
+inline auto random_in_unit_sphere(double min = -1.0, double max = 1.0) -> vec3
 {
     for (;;)
     {
-        auto const p = vec3::random(-1, 1);
+        auto const p = vec3::random(min, max);
 
         if (p.length_squared() < 1) { return p; }
     }
 }
 
-/**
- * @brief Returns a random unit vector.
- * @return A random unit vector.
- */
 inline auto random_unit_vector() -> vec3 { return unit_vector(random_in_unit_sphere()); }
 
-/**
- * @brief Returns a random vector with components in the range [min,max).
- * Uses a rejection method to generate random samples.
- * @param min The minimum value for each component.
- * @param max The maximum value for each component.
- * @return A random vector with components in the range [min,max).
- */
 inline auto random_on_hemisphere(vec3 const& normal) -> vec3
 {
     auto const in_unit_sphere = random_in_unit_sphere();
