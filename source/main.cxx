@@ -92,7 +92,11 @@ auto triangle_ray_color(ray const& r) -> color
     vec3 const v2{0, 0.4, -1};
     auto const t = hit_triangle(v0, v1, v2, r);
 
-    if (t > 0.0) { return {1.0, 0.0, 0.0}; }
+    if (t > 0.0)
+    {
+        vec3 const normal = unit_vector(cross(v1 - v0, v2 - v0));
+        return 0.5 * color(normal.x() + 1, normal.y() + 1, normal.z() + 1);
+    }
 
     vec3 const unit_direction = unit_vector(r.direction());
     auto const a = 0.5 * (unit_direction.y() + 1.0);
