@@ -21,29 +21,30 @@ public:
         {
             auto const root = sqrt(discriminant);
             auto temp = (-half_b - root) / a;
+            
             if (temp < t_max && temp > t_min)
             {
                 rec.t = temp;
                 rec.p = r.at(rec.t);
                 vec3 const outward_normal = (rec.p - m_center) / m_radius;
                 rec.set_face_normal(r, outward_normal);
-                
+
                 return true;
             }
-            
+
             temp = (-half_b + root) / a;
-            
+
             if (temp < t_max && temp > t_min)
             {
                 rec.t = temp;
                 rec.p = r.at(rec.t);
                 vec3 const outward_normal = (rec.p - m_center) / m_radius;
                 rec.set_face_normal(r, outward_normal);
-                
+
                 return true;
             }
         }
-        
+
         return false;
     }
 
