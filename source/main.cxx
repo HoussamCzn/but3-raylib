@@ -7,8 +7,8 @@ auto main() -> int
 {
     auto const material_ground = std::make_shared<lambertian>(color(0.8, 0.8, 0.0));
     auto const material_center = std::make_shared<lambertian>(color(0.7, 0.3, 0.3));
-    auto const material_left = std::make_shared<metal>(color(0.8, 0.8, 0.8));
-    auto const material_right = std::make_shared<metal>(color(0.8, 0.6, 0.2));
+    auto const material_left = std::make_shared<metal>(color(0.8, 0.8, 0.8), 0.3);
+    auto const material_right = std::make_shared<metal>(color(0.8, 0.6, 0.2), 1.0);
 
     hittable_list world;
     world.add(make_shared<sphere>(point3(0.0, -100.5, -1.0), 100.0, material_ground));
