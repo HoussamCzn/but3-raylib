@@ -24,11 +24,11 @@ public:
             auto const sqrtd = std::sqrt(discriminant);
             auto root = (-half_b - sqrtd) / a;
 
-            if (!ray_interval.contains(root))
+            if (!ray_interval.surrounds(root))
             {
                 root = (-half_b + root) / a;
 
-                if (!ray_interval.contains(root)) { return false; }
+                if (!ray_interval.surrounds(root)) { return false; }
             }
 
             rec.t = root;
