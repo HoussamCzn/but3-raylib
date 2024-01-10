@@ -1,6 +1,7 @@
 #include "camera.hxx"        // camera
 #include "hittable_list.hxx" // hittable_list
 #include "material.hxx"      // lambertian, metal, dialectric
+#include "sphere.hxx"        // sphere
 #include "triangle.hxx"      // triangle
 
 #include <algorithm>  // std::ranges::for_each
@@ -10,7 +11,7 @@
 #include <ranges>     // std::views::iota
 #include <stdexcept>  // std::runtime_error
 
-auto load_mesh(std::filesystem::path const& path) -> hittable_list
+auto load_mesh(std::filesystem::path const& path, std::shared_ptr<material> p_material) -> hittable_list
 {
     if (!std::filesystem::exists(path))
     {
@@ -67,8 +68,7 @@ auto load_mesh(std::filesystem::path const& path) -> hittable_list
         std::size_t v2{0UL};
         std::size_t v3{0UL};
         file >> vertex_count >> v1 >> v2 >> v3;
-        world.add(std::make_shared<triangle>(vertices[v1], vertices[v2], vertices[v3],
-                                             std::make_shared<metal>(color(0.8, 0.8, 0.8), 0.3)));
+        world.add(std::make_shared<triangle>(vertices[v1], vertices[v2], vertices[v3], p_material));
     });
 
     return world;
@@ -86,14 +86,25 @@ auto main(int argc, char* argv[]) -> int
 
     try
     {
-        auto const world = load_mesh(args[1]);
+        auto const mesh_material = std::make_shared<lambertian>(color_from_rgb(0xFF, 0xA5, 0x00));
+        auto const material_ground = std::make_shared<lambertian>(color(0.8, 0.8, 0.0));
+        auto const material_center = std::make_shared<lambertian>(color(0.1, 0.2, 0.5));
+        auto const material_left = std::make_shared<dielectric>(1.5);
+        auto const material_right = std::make_shared<metal>(color(0.8, 0.6, 0.2), 0.0);
+
+        auto loaded_mesh = load_mesh(args[1], mesh_material);
+        loaded_mesh.add(make_shared<sphere>(point3(0.0, -100.5, -1.0), 100.0, material_ground));
+        loaded_mesh.add(make_shared<sphere>(point3(0.0, 0.0, -1.0), 0.5, material_center));
+        loaded_mesh.add(make_shared<sphere>(point3(-1.0, 0.0, -1.0), 0.5, material_left));
+        loaded_mesh.add(make_shared<sphere>(point3(-1.0, 0.0, -1.0), -0.4, material_left));
+        loaded_mesh.add(make_shared<sphere>(point3(1.0, 0.0, -1.0), 0.5, material_right));
 
         camera view;
         view.aspect_ratio = 16.0 / 9.0;
         view.image_width = 400;
         view.samples_per_pixel = 100;
-        view.max_depth = 50;
-        view.render(world);
+        view.max_depth = 100;
+        view.render(loaded_mesh);
     }
     catch (std::exception const& e)
     {
