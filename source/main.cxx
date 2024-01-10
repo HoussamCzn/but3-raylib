@@ -5,14 +5,13 @@
 
 auto main() -> int
 {
-    // red
-    auto const metal_material = std::make_shared<lambertian>(color_from_rgb(255, 0, 0));
+    auto const lambertian_material = std::make_shared<lambertian>(color_from_rgb(255, 0, 0));
     vec3 const v0(0, 0, -1);
     vec3 const v1(0.6, 0, -1);
     vec3 const v2(0, 0.4, -1);
 
     hittable_list world;
-    world.add(std::make_shared<triangle>(v0, v1, v2, metal_material));
+    world.add(std::make_shared<triangle>(v0, v1, v2, lambertian_material));
 
     camera view;
     view.aspect_ratio = 16.0 / 9.0;
