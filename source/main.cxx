@@ -1,16 +1,18 @@
 #include "camera.hxx"        // camera
 #include "hittable_list.hxx" // hittable_list
-#include "material.hxx"      // lambertian, metal
-#include "sphere.hxx"        // sphere
-#include "triangle.hxx"
-#include "vec3.hxx"
+#include "material.hxx"      // lambertian, metal, dialectric
+#include "triangle.hxx"      // triangle
 
 auto main() -> int
 {
-    auto const metal_material = std::make_shared<metal>(color(0.8, 0.6, 0.2), 0.0);
+    // red
+    auto const metal_material = std::make_shared<lambertian>(color_from_rgb(255, 0, 0));
+    vec3 const v0(0, 0, -1);
+    vec3 const v1(0.6, 0, -1);
+    vec3 const v2(0, 0.4, -1);
 
     hittable_list world;
-    world.add(make_shared<triangle>(vec3(0, 0, -1), vec3(0.6, 0, -1), vec3(0, 0.4, -1), metal_material));
+    world.add(std::make_shared<triangle>(v0, v1, v2, metal_material));
 
     camera view;
     view.aspect_ratio = 16.0 / 9.0;
@@ -18,4 +20,6 @@ auto main() -> int
     view.samples_per_pixel = 100;
     view.max_depth = 50;
     view.render(world);
+
+    return 0;
 }
