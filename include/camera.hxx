@@ -10,6 +10,7 @@
 #include <format>     // std::format
 #include <iostream>   // std::clog, std::cout, std::flush
 #include <latch>      // std::latch
+#include <numeric>    // std::transform_reduce
 #include <ranges>     // std::views::iota
 #include <syncstream> // std::osyncstream
 #include <thread>     // std::thread
