@@ -7,7 +7,12 @@
 #include "vec3.hxx"     // vec3
 
 #include <cstdint>  // uint32_t
+#include <format>   // std::format
 #include <iostream> // std::clog, std::cout, std::flush
+#include <latch>    // std::latch
+#include <mutex>    // std::mutex, std::scoped_lock
+#include <ranges>   // std::views::iota
+#include <thread>   // std::thread
 
 class camera
 {
@@ -18,31 +23,21 @@ public:
     uint32_t samples_per_pixel{10};
     uint32_t max_depth{10};
 
-    auto render(hittable const& world) -> void
+    auto render(hittable const& world, size_t const thread_count = std::thread::hardware_concurrency()) -> void
     {
         initialize();
+        std::cout << std::format("P3\n{} {}\n255\n", image_width, m_image_height);
 
-        std::cout << "P3\n" << image_width << ' ' << m_image_height << "\n255\n";
-
-        for (auto j = 0U; j < m_image_height; ++j)
+        switch (thread_count)
         {
-            std::clog << "\rScanlines remaining: " << (m_image_height - j) << ' ' << std::flush;
-
-            for (auto i = 0U; i < image_width; ++i)
-            {
-                color pixel_color;
-
-                for (auto s = 0U; s < samples_per_pixel; ++s)
-                {
-                    auto const r = get_ray(i, j);
-                    pixel_color += ray_color(r, max_depth, world);
-                }
-
-                write_color(std::cout, pixel_color, samples_per_pixel);
-            }
+        case 0:
+        case 1:
+            singlethreaded_render(world);
+            break;
+        default:
+            multithreaded_render(world, thread_count);
+            break;
         }
-
-        std::clog << "\nDone.\n";
     }
 
 private:
@@ -92,7 +87,7 @@ private:
 
     static auto ray_color(ray const& r, uint32_t depth, hittable const& world) -> color
     {
-        if (depth <= 0) { return {}; }
+        if (depth <= 0) [[unlikely]] { return {}; }
 
         hit_record rec;
 
@@ -113,6 +108,72 @@ private:
         auto const t = 0.5 * (unit_direction.y() + 1.0);
 
         return (1.0 - t) * color{1.0, 1.0, 1.0} + t * color{0.5, 0.7, 1.0};
+    }
+
+    auto singlethreaded_render(hittable const& world) -> void
+    {
+        for (auto const j : std::views::iota(0U, m_image_height))
+        {
+            std::clog << "\rScanlines remaining: " << m_image_height - j << ' ' << std::flush;
+
+            for (auto const i : std::views::iota(0U, image_width))
+            {
+                auto const sp_range = std::views::iota(0U, samples_per_pixel);
+                auto const render = [this, &world, i, j](auto const) { return ray_color(get_ray(i, j), max_depth, world); };
+                auto const px_color = std::transform_reduce(sp_range.begin(), sp_range.end(), color{}, std::plus{}, render);
+                write_color(std::cout, px_color, samples_per_pixel);
+            }
+        }
+
+        std::clog << "\nDone.\n";
+    }
+
+    auto multithreaded_render(hittable const& world, size_t const thread_count) -> void
+    {
+        std::vector<std::thread> threads(thread_count);
+        std::vector<std::string> buffers(thread_count);
+        std::latch done(static_cast<ptrdiff_t>(thread_count));
+        std::mutex clog_mutex;
+        std::size_t remaining_lines(m_image_height);
+        auto const rows = m_image_height / thread_count;
+        auto const work = [this, &world, &buffers, &done, &clog_mutex, &remaining_lines](auto idx, auto start, auto end) mutable {
+            auto& buffer = buffers[idx];
+            buffer.reserve(m_image_height * image_width * 12);
+            for (auto const j : std::views::iota(start, end))
+            {
+                locked_clog_lines(clog_mutex, --remaining_lines);
+
+                for (auto const i : std::views::iota(0U, image_width))
+                {
+                    auto const sp_range = std::views::iota(0U, samples_per_pixel);
+                    auto const render = [this, i, j, &world](auto const) { return ray_color(get_ray(i, j), max_depth, world); };
+                    auto const px_color = std::transform_reduce(sp_range.begin(), sp_range.end(), color{}, std::plus{}, render);
+                    write_color(buffer, px_color, samples_per_pixel);
+                }
+            }
+
+            done.count_down();
+        };
+
+        for (auto const i : std::views::iota(0U, thread_count))
+        {
+            auto const start = i * rows;
+            auto const end = (i == thread_count - 1) ? m_image_height : start + rows;
+            threads.emplace_back(work, i, start, end);
+        }
+
+        done.wait();
+        std::ranges::for_each(threads, [](auto& thread) {
+            if (thread.joinable()) [[likely]] { thread.join(); }
+        });
+        std::ranges::for_each(buffers, [](auto const& buffer) { std::cout << buffer; });
+        std::clog << "\nDone.\n";
+    }
+
+    static inline auto locked_clog_lines(std::mutex& mutex, size_t remaining_lines) -> void
+    {
+        std::scoped_lock lock(mutex);
+        std::clog << "\rScanlines remaining: " << remaining_lines << ' ' << std::flush;
     }
 
     uint32_t m_image_height{0};
