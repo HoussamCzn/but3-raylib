@@ -6,13 +6,13 @@
 #include "material.hxx" // material
 #include "vec3.hxx"     // vec3
 
-#include <cstdint>  // uint32_t
-#include <format>   // std::format
-#include <iostream> // std::clog, std::cout, std::flush
-#include <latch>    // std::latch
-#include <mutex>    // std::mutex, std::scoped_lock
-#include <ranges>   // std::views::iota
-#include <thread>   // std::thread
+#include <cstdint>    // uint32_t
+#include <format>     // std::format
+#include <iostream>   // std::clog, std::cout, std::flush
+#include <latch>      // std::latch
+#include <ranges>     // std::views::iota
+#include <syncstream> // std::osyncstream
+#include <thread>     // std::thread
 
 class camera
 {
@@ -141,7 +141,8 @@ private:
             buffer.reserve(m_image_height * image_width * 12);
             for (auto const j : std::views::iota(start, end))
             {
-                locked_clog_lines(clog_mutex, --remaining_lines);
+                std::osyncstream osync(std::clog);
+                osync << "\rScanlines remaining: " << --remaining_lines << ' ' << std::flush;
 
                 for (auto const i : std::views::iota(0U, image_width))
                 {
@@ -168,12 +169,6 @@ private:
         });
         std::ranges::for_each(buffers, [](auto const& buffer) { std::cout << buffer; });
         std::clog << "\nDone.\n";
-    }
-
-    static inline auto locked_clog_lines(std::mutex& mutex, size_t remaining_lines) -> void
-    {
-        std::scoped_lock lock(mutex);
-        std::clog << "\rScanlines remaining: " << remaining_lines << ' ' << std::flush;
     }
 
     uint32_t m_image_height{0};
