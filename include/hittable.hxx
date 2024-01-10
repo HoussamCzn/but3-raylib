@@ -4,8 +4,6 @@
 #include "ray.hxx"      // ray
 #include "record.hxx"   // hit_record
 
-class material;
-
 class hittable
 {
 public:
