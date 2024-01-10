@@ -144,10 +144,9 @@ private:
         std::vector<std::thread> threads(thread_count);
         std::vector<std::string> buffers(thread_count);
         std::latch done(static_cast<ptrdiff_t>(thread_count));
-        std::mutex clog_mutex;
         std::size_t remaining_lines(m_image_height);
         auto const rows = m_image_height / thread_count;
-        auto const work = [this, &world, &buffers, &done, &clog_mutex, &remaining_lines, mode](auto idx, auto start, auto end) {
+        auto const work = [this, &world, &buffers, &done, &remaining_lines, mode](auto idx, auto start, auto end) {
             auto& buffer = buffers[idx];
             buffer.reserve(m_image_height * image_width * 12);
             for (auto const j : std::views::iota(start, end))
