@@ -123,7 +123,7 @@ private:
                 {
                     auto const light_intensity = source.intensity / (light_distance * light_distance);
                     auto const light_attenuation = std::max(0.0, dot(rec.normal, light_direction));
-                    diffuse_light += light_intensity * light_attenuation * source.color;
+                    diffuse_light += light_attenuation * source.color * light_intensity * rec.mat_ptr->get_color();
                 }
             }
 
