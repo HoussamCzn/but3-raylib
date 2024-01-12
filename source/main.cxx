@@ -11,7 +11,7 @@
 #include <ranges>     // std::views::iota
 #include <stdexcept>  // std::runtime_error
 
-auto load_mesh(std::filesystem::path const& path, std::shared_ptr<material> p_material) -> hittable_list
+auto load_mesh(std::filesystem::path const& path, std::shared_ptr<material> p_material) -> std::vector<std::shared_ptr<hittable>>
 {
     if (!std::filesystem::exists(path))
     {
@@ -22,7 +22,6 @@ auto load_mesh(std::filesystem::path const& path, std::shared_ptr<material> p_ma
     std::ifstream file(path);
     if (!file.is_open()) [[unlikely]] { throw std::runtime_error("file not opened"); }
 
-    hittable_list world;
     static constexpr std::ptrdiff_t vertex_count_offset{15L};
     static constexpr std::ptrdiff_t face_count_offset{13L};
     std::size_t vertex_count{0UL};
@@ -54,7 +53,9 @@ auto load_mesh(std::filesystem::path const& path, std::shared_ptr<material> p_ma
     }
 
     std::vector<vec3> vertices;
+    std::vector<std::shared_ptr<hittable>> triangles;
     vertices.reserve(vertex_count);
+    triangles.reserve(face_count);
     std::ranges::for_each(std::views::iota(0UL, vertex_count), [&vertices, &file]([[maybe_unused]] std::size_t const idx) {
         float x{0.0F};
         float y{0.0F};
@@ -68,10 +69,10 @@ auto load_mesh(std::filesystem::path const& path, std::shared_ptr<material> p_ma
         std::size_t v2{0UL};
         std::size_t v3{0UL};
         file >> vertex_count >> v1 >> v2 >> v3;
-        world.add(std::make_shared<triangle>(vertices[v1], vertices[v2], vertices[v3], p_material));
+        triangles.emplace_back(std::make_shared<triangle>(vertices[v1], vertices[v2], vertices[v3], p_material));
     });
 
-    return world;
+    return triangles;
 }
 
 auto main(int argc, char* argv[]) -> int
@@ -92,19 +93,22 @@ auto main(int argc, char* argv[]) -> int
         auto const material_left = std::make_shared<dielectric>(1.5);
         auto const material_right = std::make_shared<metal>(color(0.8, 0.6, 0.2), 0.0);
 
-        auto loaded_mesh = load_mesh(args[1], mesh_material);
-        loaded_mesh.add(make_shared<sphere>(point3(0.0, -100.5, -1.0), 100.0, material_ground));
-        loaded_mesh.add(make_shared<sphere>(point3(0.0, 0.0, -1.0), 0.5, material_center));
-        loaded_mesh.add(make_shared<sphere>(point3(-1.0, 0.0, -1.0), 0.5, material_left));
-        loaded_mesh.add(make_shared<sphere>(point3(-1.0, 0.0, -1.0), -0.4, material_left));
-        loaded_mesh.add(make_shared<sphere>(point3(1.0, 0.0, -1.0), 0.5, material_right));
+        auto const loaded_mesh = load_mesh(args[1], mesh_material);
+
+        hittable_list world;
+        std::ranges::for_each(loaded_mesh, [&world](auto const& triangle) { world.add(triangle); });
+        world.add(std::make_shared<sphere>(point3(0.0, -100.5, -1.0), 100.0, material_ground));
+        world.add(std::make_shared<sphere>(point3(0.0, 0.0, -1.0), 0.5, material_center));
+        world.add(std::make_shared<sphere>(point3(-1.0, 0.0, -1.0), 0.5, material_left));
+        world.add(std::make_shared<sphere>(point3(-1.0, 0.0, -1.0), -0.4, material_left));
+        world.add(std::make_shared<sphere>(point3(1.0, 0.0, -1.0), 0.5, material_right));
 
         camera view;
         view.aspect_ratio = 16.0 / 9.0;
         view.image_width = 400;
         view.samples_per_pixel = 100;
         view.max_depth = 100;
-        view.render(loaded_mesh);
+        view.render(world);
     }
     catch (std::exception const& e)
     {
