@@ -75,46 +75,32 @@ auto load_mesh(std::filesystem::path const& path, std::shared_ptr<material> p_ma
     return triangles;
 }
 
-auto main(int argc, char* argv[]) -> int
+auto main([[maybe_unused]] int argc, [[maybe_unused]] char* argv[]) -> int
 {
-    std::span<char const* const> args(argv, argc);
+    hittable_list world;
+    std::vector<light> lights;
+    lights.emplace_back(light{vec3{0.0, 0.0, 0.0}, color_from_rgb(0xFF, 0xFF, 0xFF), 1.0});
 
-    if (argc != 2)
-    {
-        std::cerr << "Usage: " << args[0] << " <input file>\n";
-        return -1;
-    }
+    auto const ground_material = std::make_shared<lambertian>(color{0.8, 0.8, 0.0});
+    auto const center_material = std::make_shared<lambertian>(color{0.1, 0.2, 0.5});
+    auto const left_material = std::make_shared<dielectric>(1.5);
+    auto const right_material = std::make_shared<metal>(color{0.8, 0.6, 0.2}, 0.0);
+    auto const ground = std::make_shared<sphere>(point3{0.0, -100.5, -1.0}, 100.0, ground_material);
+    auto const center_sphere = std::make_shared<sphere>(point3{0.0, 0.0, -1.0}, 0.5, center_material);
+    auto const left_sphere = std::make_shared<sphere>(point3{-1.0, 0.0, -1.0}, 0.5, left_material);
+    auto const right_sphere = std::make_shared<sphere>(point3{1.0, 0.0, -1.0}, 0.5, right_material);
 
-    try
-    {
-        auto const mesh_material = std::make_shared<lambertian>(color_from_rgb(0xFF, 0xA5, 0x00));
-        auto const material_ground = std::make_shared<lambertian>(color(0.8, 0.8, 0.0));
-        auto const material_center = std::make_shared<lambertian>(color(0.1, 0.2, 0.5));
-        auto const material_left = std::make_shared<dielectric>(1.5);
-        auto const material_right = std::make_shared<metal>(color(0.8, 0.6, 0.2), 0.0);
+    world.add(ground);
+    world.add(center_sphere);
+    world.add(left_sphere);
+    world.add(right_sphere);
 
-        auto const loaded_mesh = load_mesh(args[1], mesh_material);
-
-        hittable_list world;
-        std::ranges::for_each(loaded_mesh, [&world](auto const& triangle) { world.add(triangle); });
-        world.add(std::make_shared<sphere>(point3(0.0, -100.5, -1.0), 100.0, material_ground));
-        world.add(std::make_shared<sphere>(point3(0.0, 0.0, -1.0), 0.5, material_center));
-        world.add(std::make_shared<sphere>(point3(-1.0, 0.0, -1.0), 0.5, material_left));
-        world.add(std::make_shared<sphere>(point3(-1.0, 0.0, -1.0), -0.4, material_left));
-        world.add(std::make_shared<sphere>(point3(1.0, 0.0, -1.0), 0.5, material_right));
-
-        camera view;
-        view.aspect_ratio = 16.0 / 9.0;
-        view.image_width = 400;
-        view.samples_per_pixel = 100;
-        view.max_depth = 100;
-        view.render(world);
-    }
-    catch (std::exception const& e)
-    {
-        std::cerr << e.what() << '\n';
-        return -1;
-    }
-
+    camera view;
+    view.aspect_ratio = 16.0 / 9.0;
+    view.image_width = 400;
+    view.samples_per_pixel = 100;
+    view.max_depth = 100;
+    view.render(world, lights);
+    
     return 0;
 }
