@@ -58,7 +58,7 @@ private:
         m_origin = point3(0.0, 0.0, 5.0);
 
         // Determine viewport dimensions.
-        auto const focal_length = 3.0;
+        auto const focal_length = 5.0;
         auto const viewport_height = 2.0;
         auto const viewport_width = viewport_height * (static_cast<double>(image_width) / m_image_height);
 
@@ -149,7 +149,8 @@ private:
         auto const rows = m_image_height / thread_count;
         auto const work = [this, &world, &buffers, &done, &remaining_lines, mode](auto idx, auto start, auto end) {
             auto& buffer = buffers[idx];
-            buffer.reserve(m_image_height * image_width * 12);
+            buffer.reserve((end - start) * image_width * 12);
+
             for (auto const j : std::views::iota(start, end))
             {
                 std::osyncstream osync(std::clog);
