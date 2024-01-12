@@ -10,6 +10,8 @@ public:
 
     virtual ~material() = default;
 
+    virtual auto get_color() const -> color = 0;
+
     virtual auto scatter(ray const& r_in, hit_record const& rec, color& attenuation, ray& scattered) const -> bool = 0;
 };
 
@@ -18,6 +20,8 @@ class lambertian : public material
 public:
 
     explicit lambertian(color const& a) : m_albedo(a) {}
+
+    auto get_color() const -> color override { return m_albedo; }
 
     auto scatter(ray const& /* r_in */, hit_record const& rec, color& attenuation, ray& scattered) const -> bool override
     {
@@ -42,6 +46,8 @@ public:
 
     metal(color const& a, double const fuzz) : m_albedo(a), m_fuzz(fuzz < 1.0 ? fuzz : 1.0) {}
 
+    auto get_color() const -> color override { return m_albedo; }
+
     auto scatter(ray const& r_in, hit_record const& rec, color& attenuation, ray& scattered) const -> bool override
     {
         auto const reflected = reflect(unit_vector(r_in.direction()), rec.normal);
@@ -63,21 +69,19 @@ public:
 
     explicit dielectric(double const index_of_refraction) : m_ir(index_of_refraction) {}
 
+    auto get_color() const -> color override { return {1.0, 1.0, 1.0}; }
+
     auto scatter(ray const& r_in, hit_record const& rec, color& attenuation, ray& scattered) const -> bool override
     {
-        attenuation = color(1.0, 1.0, 1.0);
+        attenuation = {1.0, 1.0, 1.0};
         auto const refraction_ratio = rec.front_face ? (1.0 / m_ir) : m_ir;
         auto const unit_direction = unit_vector(r_in.direction());
         auto const cos_theta = fmin(dot(-unit_direction, rec.normal), 1.0);
         auto const sin_theta = sqrt(1.0 - cos_theta * cos_theta);
         auto const cannot_refract = refraction_ratio * sin_theta > 1.0;
-        vec3 direction;
-
-        if (cannot_refract || reflectance(cos_theta, refraction_ratio) > random_double())
-        {
-            direction = reflect(unit_direction, rec.normal);
-        }
-        else { direction = refract(unit_direction, rec.normal, refraction_ratio); }
+        auto const direction = cannot_refract || reflectance(cos_theta, refraction_ratio) > random_double()
+                                   ? reflect(unit_direction, rec.normal)
+                                   : refract(unit_direction, rec.normal, refraction_ratio);
 
         scattered = ray(rec.p, direction);
 

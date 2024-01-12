@@ -3,6 +3,7 @@
 #include "color.hxx"    // color
 #include "helpers.hxx"  // random_double
 #include "hittable.hxx" // hittable
+#include "light.hxx"    // light
 #include "material.hxx" // material
 #include "vec3.hxx"     // vec3
 
@@ -30,7 +31,7 @@ public:
     uint32_t samples_per_pixel{10};
     uint32_t max_depth{10};
 
-    auto render(hittable const& world, render_mode const mode = render_mode::final,
+    auto render(hittable const& world, std::span<light const> lights = {}, render_mode const mode = render_mode::final,
                 size_t const thread_count = std::thread::hardware_concurrency()) -> void
     {
         initialize();
@@ -40,10 +41,10 @@ public:
         {
         case 0:
         case 1:
-            singlethreaded_render(world, mode);
+            singlethreaded_render(world, lights, mode);
             break;
         default:
-            multithreaded_render(world, mode, thread_count);
+            multithreaded_render(world, lights, mode, thread_count);
             break;
         }
     }
@@ -58,7 +59,7 @@ private:
         m_origin = point3(0.0, 0.0, 5.0);
 
         // Determine viewport dimensions.
-        auto const focal_length = 3.0;
+        auto const focal_length = 5.0;
         auto const viewport_height = 2.0;
         auto const viewport_width = viewport_height * (static_cast<double>(image_width) / m_image_height);
 
@@ -93,7 +94,16 @@ private:
         return (x * m_horizontal) + (y * m_vertical);
     }
 
-    static auto ray_color(ray const& r, uint32_t depth, hittable const& world, render_mode const mode) -> color
+    static auto is_shadowed(vec3 const& point, vec3 const& to_light, double light_distance, hittable const& world) -> bool
+    {
+        ray shadow_ray(point, to_light);
+        hit_record shadow_rec;
+
+        return world.hit(shadow_ray, {0.001, light_distance}, shadow_rec);
+    }
+
+    static auto ray_color(ray const& r, uint32_t depth, hittable const& world, std::span<light const> lights,
+                          render_mode const mode) -> color
     {
         if (depth <= 0) [[unlikely]] { return {}; }
 
@@ -101,17 +111,25 @@ private:
 
         if (world.hit(r, interval{0.001, infinity}, rec))
         {
-            ray scattered;
-            color attenuation;
+            color diffuse_light;
 
-            if (rec.mat_ptr->scatter(r, rec, attenuation, scattered))
+            for (auto const& source : lights)
             {
-                if (mode == render_mode::normals) { return 0.5 * (rec.normal + color(1.0, 1.0, 1.0)); }
+                auto const to_light = source.position - rec.p;
+                auto const light_distance = to_light.length();
+                auto const light_direction = to_light / light_distance;
 
-                return attenuation * ray_color(scattered, depth - 1, world, mode);
+                if (!is_shadowed(rec.p, light_direction, light_distance, world))
+                {
+                    auto const light_intensity = source.intensity / (light_distance * light_distance);
+                    auto const light_attenuation = std::max(0.0, dot(rec.normal, light_direction));
+                    diffuse_light += light_attenuation * source.color * light_intensity * rec.mat_ptr->get_color();
+                }
             }
 
-            return {};
+            if (mode == render_mode::normals) { return 0.5 * (rec.normal + color(1.0, 1.0, 1.0)); }
+
+            return diffuse_light;
         }
 
         auto const unit_direction = unit_vector(r.direction());
@@ -120,7 +138,7 @@ private:
         return (1.0 - t) * color{1.0, 1.0, 1.0} + t * color{0.5, 0.7, 1.0};
     }
 
-    auto singlethreaded_render(hittable const& world, render_mode const mode) -> void
+    auto singlethreaded_render(hittable const& world, std::span<light const> lights, render_mode const mode) -> void
     {
         for (auto const j : std::views::iota(0U, m_image_height))
         {
@@ -129,8 +147,8 @@ private:
             for (auto const i : std::views::iota(0U, image_width))
             {
                 auto const sp_range = std::views::iota(0U, samples_per_pixel);
-                auto const render = [this, &world, mode, i, j](auto const) {
-                    return ray_color(get_ray(i, j), max_depth, world, mode);
+                auto const render = [this, &world, &lights, mode, i, j](auto const) {
+                    return ray_color(get_ray(i, j), max_depth, world, lights, mode);
                 };
                 auto const px_color = std::transform_reduce(sp_range.begin(), sp_range.end(), color{}, std::plus{}, render);
                 write_color(std::cout, px_color, samples_per_pixel);
@@ -140,16 +158,18 @@ private:
         std::clog << "\nDone.\n";
     }
 
-    auto multithreaded_render(hittable const& world, render_mode const mode, size_t const thread_count) -> void
+    auto multithreaded_render(hittable const& world, std::span<light const> lights, render_mode const mode,
+                              size_t const thread_count) -> void
     {
         std::vector<std::thread> threads(thread_count);
         std::vector<std::string> buffers(thread_count);
         std::latch done(static_cast<ptrdiff_t>(thread_count));
         std::size_t remaining_lines(m_image_height);
         auto const rows = m_image_height / thread_count;
-        auto const work = [this, &world, &buffers, &done, &remaining_lines, mode](auto idx, auto start, auto end) {
+        auto const work = [this, &world, &lights, &buffers, &done, &remaining_lines, mode](auto idx, auto start, auto end) {
             auto& buffer = buffers[idx];
-            buffer.reserve(m_image_height * image_width * 12);
+            buffer.reserve((end - start) * image_width * 12);
+
             for (auto const j : std::views::iota(start, end))
             {
                 std::osyncstream osync(std::clog);
@@ -158,8 +178,8 @@ private:
                 for (auto const i : std::views::iota(0U, image_width))
                 {
                     auto const sp_range = std::views::iota(0U, samples_per_pixel);
-                    auto const render = [this, i, j, &world, mode](auto const) {
-                        return ray_color(get_ray(i, j), max_depth, world, mode);
+                    auto const render = [this, i, j, &world, &lights, mode](auto const) {
+                        return ray_color(get_ray(i, j), max_depth, world, lights, mode);
                     };
                     auto const px_color = std::transform_reduce(sp_range.begin(), sp_range.end(), color{}, std::plus{}, render);
                     write_color(buffer, px_color, samples_per_pixel);
